@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Login - Student Payments</title>
+	<link rel="stylesheet" href="main.css">
+	<!-- main script provides loginUser/getStudents/addPayment -->
+	<script src="script.js" defer></script>
+</head>
+<body>
+	<div class="page center-vertical">
+		<div class="card">
+			<h1 class="title">Student Payment - Login</h1>
+
+			<label class="label">Username</label>
+			<input id="username" type="text" placeholder="Enter username" />
+
+			<label class="label">PIN</label>
+			<input id="pin" type="password" placeholder="Enter PIN" />
+
+			<div class="row spaced">
+				<button id="loginBtn" class="btn primary">Login</button>
+				<button id="demoBtn" class="btn">Fill demo</button>
+			</div>
+
+			<p id="error" class="error"></p>
+
+			<!-- Small README / deploy notes for beginner (visible in source) -->
+			<!--
+				To test locally: open `login.html` in your browser.
+				For Vercel deployment: push this folder to a Git repo and import it in Vercel.
+				The app uses the Google Apps Script API URL embedded in `script.js`.
+			-->
+		</div>
+	</div>
+
+	<script>
+		// Page logic: use global loginUser from script.js
+		document.getElementById('loginBtn').addEventListener('click', async () => {
+			const user = document.getElementById('username').value.trim();
+			const pin = document.getElementById('pin').value.trim();
+			const errEl = document.getElementById('error');
+			errEl.textContent = '';
+
+			// basic client-side validation
+			if (!user || !pin) {
+				errEl.textContent = 'Please enter username and PIN.';
+				return;
+			}
+
+			// show loading state
+			const btn = document.getElementById('loginBtn');
+			btn.disabled = true;
+			btn.textContent = 'Logging in...';
+
+			try {
+				const res = await window.loginUser(user, pin);
+				if (!res || !res.success) {
+					errEl.textContent = res && res.message ? res.message : 'Invalid username or PIN';
+				} else {
+					// store class and navigate
+					localStorage.setItem('spw_class', res.class);
+					if (res.class === 'ALL') window.location.href = 'admin.html';
+					else window.location.href = 'class.html';
+				}
+			} catch (e) {
+				errEl.textContent = e.message || 'Login failed';
+			} finally {
+				btn.disabled = false;
+				btn.textContent = 'Login';
+			}
+		});
+
+		// demo button to fill demo credentials (helpful for beginner)
+		document.getElementById('demoBtn').addEventListener('click', () => {
+			document.getElementById('username').value = 'admin';
+			document.getElementById('pin').value = '0000';
+		});
+	</script>
+</body>
+</html>

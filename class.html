@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Class Dashboard - Student Payments</title>
+	<link rel="stylesheet" href="main.css">
+	<script src="script.js" defer></script>
+</head>
+<body>
+	<div class="page">
+		<header class="topbar">
+			<h2 id="pageTitle">Class Dashboard</h2>
+			<div>
+				<button id="logoutBtn" class="btn">Logout</button>
+			</div>
+		</header>
+
+		<main class="container">
+			<section class="card">
+				<h3>Payments</h3>
+				<div id="status" class="muted"></div>
+				<div class="table-wrap">
+					<table id="studentsTable">
+						<thead>
+							<tr><th>Name</th><th>Amount</th><th>Mode</th><th>Date</th></tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="card">
+				<h3>Add Payment</h3>
+				<label class="label">Name</label>
+				<input id="p_name" type="text" placeholder="Student name" />
+
+				<label class="label">Amount</label>
+				<input id="p_amount" type="number" placeholder="Amount" />
+
+				<label class="label">Mode</label>
+				<select id="p_mode">
+					<option value="Cash">Cash</option>
+					<option value="Card">Card</option>
+					<option value="Online">Online</option>
+				</select>
+
+				<label class="label">Date</label>
+				<input id="p_date" type="date" />
+
+				<div class="row">
+					<button id="addBtn" class="btn primary">Add Payment</button>
+				</div>
+				<p id="formMsg" class="error"></p>
+			</section>
+		</main>
+	</div>
+
+	<script>
+		// Page initialization
+		(async function () {
+			const storedClass = localStorage.getItem('spw_class');
+			if (!storedClass) {
+				// not logged in
+				window.location.href = 'login.html';
+				return;
+			}
+
+			if (storedClass === 'ALL') {
+				// admin shouldn't be on class page
+				window.location.href = 'admin.html';
+				return;
+			}
+
+			document.getElementById('pageTitle').textContent = `Class ${storedClass} - Payments`;
+
+			// set default date to today
+			document.getElementById('p_date').value = window.formatDateForInput();
+
+			// load students
+			const status = document.getElementById('status');
+			const load = async () => {
+				status.textContent = 'Loading...';
+				const res = await window.getStudents(storedClass);
+				if (!res || !res.success) {
+					status.textContent = res && res.message ? res.message : 'Failed to load';
+					return;
+				}
+
+				status.textContent = '';
+				const tbody = document.querySelector('#studentsTable tbody');
+				tbody.innerHTML = '';
+				(res.students || []).forEach(s => {
+					const tr = document.createElement('tr');
+					tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.amount)}</td><td>${escapeHtml(s.mode)}</td><td>${escapeHtml(s.date)}</td>`;
+					tbody.appendChild(tr);
+				});
+			};
+
+			// add payment handler
+			document.getElementById('addBtn').addEventListener('click', async () => {
+				const name = document.getElementById('p_name').value.trim();
+				const amount = document.getElementById('p_amount').value.trim();
+				const mode = document.getElementById('p_mode').value;
+				const date = document.getElementById('p_date').value;
+				const msg = document.getElementById('formMsg');
+				msg.textContent = '';
+
+				if (!name || !amount) {
+					msg.textContent = 'Name and amount are required.';
+					return;
+				}
+
+				const addBtn = document.getElementById('addBtn');
+				addBtn.disabled = true;
+				addBtn.textContent = 'Adding...';
+
+				try {
+					const payment = { name, class: storedClass, amount, mode, date };
+					const res = await window.addPayment(payment);
+					if (!res || !res.success) {
+						msg.textContent = res && res.message ? res.message : 'Failed to add payment.';
+					} else {
+						// clear form
+						document.getElementById('p_name').value = '';
+						document.getElementById('p_amount').value = '';
+						document.getElementById('p_mode').value = 'Cash';
+						document.getElementById('p_date').value = window.formatDateForInput();
+						msg.textContent = '';
+						// reload table
+						await load();
+					}
+				} catch (e) {
+					msg.textContent = e.message || 'Failed to add payment.';
+				} finally {
+					addBtn.disabled = false;
+					addBtn.textContent = 'Add Payment';
+				}
+			});
+
+			// logout
+			document.getElementById('logoutBtn').addEventListener('click', () => {
+				localStorage.removeItem('spw_class');
+				window.location.href = 'login.html';
+			});
+
+			// helper: escape text to avoid HTML injection
+			function escapeHtml(s) { return (s == null) ? '' : s.toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+			// initial load
+			await load();
+		})();
+	</script>
+</body>
+</html>

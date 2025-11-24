@@ -1,0 +1,45 @@
+/* main.css - Simple responsive styles for Student Payment Website */
+
+:root{
+	--bg:#f5f7fb; --card:#ffffff; --accent:#2b6cb0; --muted:#6b7280; --danger:#e53e3e;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#111}
+
+.page{min-height:100vh;display:flex;flex-direction:column}
+.center-vertical{display:flex;align-items:center;justify-content:center}
+
+.card{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.06);max-width:720px;width:100%}
+.title{margin:0 0 12px 0;font-size:20px}
+.label{display:block;margin-top:8px;margin-bottom:6px;font-size:13px;color:var(--muted)}
+input[type=text],input[type=password],input[type=number],input[type=date],select{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:6px}
+
+.row{display:flex;gap:8px;align-items:center}
+.row.spaced{justify-content:space-between}
+.btn{padding:8px 12px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+
+.error{color:var(--danger);margin-top:8px}
+.muted{color:var(--muted);font-size:13px}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:transparent}
+.container{max-width:1100px;margin:18px auto;padding:0 12px;display:grid;grid-template-columns:1fr;gap:16px}
+
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:left}
+th{background:#fbfdff;color:var(--muted);font-weight:600}
+
+@media(min-width:900px){
+	.container{grid-template-columns:2fr 1fr}
+	.card{padding:20px}
+}
+
+/* small screens */
+@media(max-width:420px){
+	.card{padding:14px;border-radius:8px}
+	.title{font-size:18px}
+}
+
